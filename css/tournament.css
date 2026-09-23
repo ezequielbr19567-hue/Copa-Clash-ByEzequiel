@@ -1,0 +1,90 @@
+/* Public tournament presentation */
+.arena-body{min-width:0;--bg:#091524;--surface:#102136;--line:#25364c;--muted:#a4b6cc;background:#091524;color:#eff5ff}
+.arena-body .topbar{background:#091524ee;border-bottom:1px solid #25364c;box-shadow:none}
+.arena-body .container{max-width:1120px}
+.arena-body .brand img{border:1px solid #3d5066;border-radius:12px}
+.arena-body .brand strong{font-size:19px}
+.arena-body .welcome{margin-top:24px;min-height:290px;padding:30px 40px;border:1px solid #2f5074;border-radius:22px;background:linear-gradient(115deg,#10243e,#123d6b);box-shadow:none;gap:28px}
+.arena-body .welcome:after{display:none}
+.arena-body .welcome h1{font-size:clamp(34px,5vw,60px);letter-spacing:-1.8px}
+.hero-subtitle{display:block;margin-top:12px;color:#c9d9ed;font-size:16px}
+.arena-body .cup-kicker{background:transparent;border:0;border-radius:0;padding:0;letter-spacing:1.5px;font-size:11px;color:var(--accent)}
+.arena-body .hero-cta{border:0;border-radius:10px;background:var(--accent);color:#102136;box-shadow:none;min-height:46px;padding:0 20px;font-size:13px;margin-top:22px}
+.arena-body .hero-art{flex:0 0 256px;display:block;padding:0 18px 12px 0}
+.athlete-image{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;border-radius:16px;border:1px solid #ffffff30}
+.arena-body .hero-art .welcome-image{position:absolute;right:0;bottom:0;width:82px;height:82px;border:4px solid #153657;border-radius:18px;transform:none;box-shadow:0 6px 16px #0004}
+.cup-only .cup-summary{margin-top:18px;padding:18px 0;background:#102136;border:1px solid #25364c;border-radius:16px;gap:0}
+.cup-only .cup-summary>div{padding:0 22px!important;border:0!important;border-right:1px solid #2b3b50!important;background:transparent}
+.cup-only .cup-summary>div:last-child{border-right:0!important}
+.season-summary strong{font-size:27px;color:#f2f6ff}
+.season-summary span{font-size:12px;color:#a4b6cc}
+.arena-body .section{padding-top:34px}
+.arena-body .section-heading h2{font-size:24px;letter-spacing:-.7px}
+.cup-only .section-kicker{display:none}
+.cup-only #groupRule{max-width:none;gap:6px}
+.cup-only #groupRule span{border:0;background:#152940;color:#c7d6e7;font-size:11px;font-weight:500;min-height:30px}
+.standings-legend{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#b2c3d7;font-size:12px;margin:0 0 15px}
+.standings-legend>span{width:7px;height:7px;border-radius:50%;background:#5ad2a0}
+.standings-legend small{font-size:11px;color:#8fa5be}
+.cup-only .group-card{background:#102136;border:1px solid #293c53;border-radius:16px;box-shadow:none}
+.cup-only .group-card-head{background:#15283f;padding:15px 18px;border-color:#293c53}
+.cup-only .group-card-head>div{display:flex;align-items:baseline;gap:7px}
+.cup-only .group-card-head span{font-size:11px;letter-spacing:1px}
+.cup-only .group-card-head h3{font-size:20px}
+.cup-only .group-card-head small{background:transparent;font-size:11px;color:#a8bdd4;padding:0}
+.cup-only .group-card table{min-width:0}
+.cup-only .group-card th{font-size:10px}
+.cup-only .group-card td{padding-block:15px;font-size:13px;border-color:#26384d}
+.cup-only .group-card tr.qualifying,.cup-only .group-mobile-row.qualifying{background:#12312f;box-shadow:inset 3px 0 #5ad2a0}
+.cup-only .group-card tr.qualifying .group-rank,.cup-only .group-mobile-row.qualifying .group-rank{background:transparent;color:#77e1b5}
+.cup-only .group-tiebreak{padding:11px 15px;color:#9db2ca;border-color:#293c53;font-size:10px;line-height:1.7}
+.arena-body .match-card,.arena-body .bracket-card{background:#102136;border:1px solid #293c53;border-radius:14px;box-shadow:none}
+.arena-body .match-head{background:#15283f;border-color:#293c53;padding:13px 16px;font-size:11px}
+.arena-body .match-row{font-size:14px}
+.arena-body .match-row b,.arena-body .match-row:nth-child(2) b{background:#1d344e;color:#eef5ff;border:0;border-radius:7px}
+.arena-body .match-row .winner-name{color:#ffe098}
+.arena-body .match-meta{font-size:11px;line-height:1.6;color:#a6bad1}
+.arena-body .status{font-size:9px;letter-spacing:.4px}
+.arena-body .filter{min-height:44px;border:1px solid #30425a;border-radius:10px;background:#102136;box-shadow:none;font-size:12px}
+.arena-body .filter.active{background:var(--accent);color:#102136;border-color:var(--accent)}
+.arena-body .bracket-team .team-name{white-space:normal;overflow-wrap:anywhere}
+.arena-body .cup-tools select{background:#102136;border-color:#30425a;min-height:44px;font-size:12px}
+.arena-body .cup-tools>span{white-space:normal;max-width:none;font-size:11px}
+.arena-body .bottom-nav{background:#0d1c2fee;border-top:1px solid #30425a;backdrop-filter:blur(14px)}
+.arena-body .bottom-nav a{min-height:62px}
+.arena-body .bottom-nav a>span:last-child{font-size:11px}
+@media(max-width:760px){
+ .arena-body .welcome{padding:22px;min-height:0;gap:16px;margin-top:16px}
+ .arena-body .hero-art{flex-basis:180px}
+ .arena-body .welcome h1{font-size:36px}
+ .cup-only .cup-summary{grid-template-columns:repeat(4,minmax(0,1fr));padding:15px 0;row-gap:0}
+ .cup-only .cup-summary>div{padding:0 10px!important;border-radius:0}
+ .season-summary>div>div{display:grid;justify-content:start;gap:4px}
+ .season-summary strong{font-size:24px}.season-summary span{font-size:10px}
+ .cup-only .group-table-wrap{display:none}.group-mobile-list{display:grid}
+ .group-mobile-row{display:grid;grid-template-columns:26px minmax(0,1fr) 42px;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid #293c53;min-height:64px}
+ .group-mobile-name>b{font-size:14px;white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+ .group-mobile-name>small{font-size:11px;line-height:1.5;margin-top:4px}
+ .group-mobile-row>strong{font-size:20px}.group-mobile-row>strong small{font-size:9px}
+ .arena-body .section{padding-top:28px}.arena-body .section-heading h2{font-size:23px}
+ #grupos .section-heading{align-items:flex-start;flex-direction:column}
+ .cup-only #groupRule{flex-wrap:wrap;overflow:visible;justify-content:flex-start;width:100%}
+ .cup-only #groupRule span{font-size:10px}.arena-body .matches-list{grid-template-columns:1fr}
+ .arena-body .cup-tools{grid-template-columns:1fr}.arena-body .cup-tools>span{display:block}
+}
+@media(max-width:480px){
+ .arena-body .container{width:calc(100% - 28px)}
+ .arena-body .welcome{padding:19px 16px;gap:12px;border-radius:18px}
+ .arena-body .hero-art{flex-basis:142px;padding:0 10px 14px 0}
+ .arena-body .hero-art .welcome-image{width:57px;height:57px;border-width:3px;border-radius:13px}
+ .arena-body .welcome h1{font-size:31px;letter-spacing:-1px}
+ .hero-subtitle{font-size:12px;line-height:1.5;margin-top:8px}
+ .arena-body .hero-cta{font-size:11px;gap:12px;padding:0 12px;min-height:44px;margin-top:16px}
+ .arena-body .cup-kicker{font-size:9px;letter-spacing:.7px}
+ .cup-only .cup-summary>div{padding:0 7px!important}
+ .season-summary strong{font-size:22px}.season-summary span{font-size:9px}
+ .standings-legend{font-size:11px}.standings-legend small{font-size:10px}
+ .arena-body .match-row{min-height:44px;font-size:14px}.arena-body .match-meta{font-size:11px}
+}
+@media(max-width:350px){.arena-body .hero-art{flex-basis:118px}.arena-body .welcome h1{font-size:28px}.season-summary span{font-size:8px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
