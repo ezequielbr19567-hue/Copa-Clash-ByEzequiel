@@ -1,0 +1,171 @@
+import { supabase, configured, connectionError } from './supabase-client.js?v=3';
+import { groupKnockoutMatches, normalizeCupFormat, calculateGroupStandings, formatVictoryTime } from './cup.js?v=3';
+import { defaults, normalizeSettings, applySettings } from './settings.js?v=3';
+
+let data = {teams:[],competitions:[],entries:[],matches:[],games:[]};
+let currentFilter = 'ALL';
+let appearance = { ...defaults };
+
+const $ = q => document.querySelector(q);
+const escapeHtml = (v='') => String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const emptyState = label => `<div class="empty-state"><span class="empty-mark" aria-hidden="true">—</span><p>${escapeHtml(label)}</p></div>`;
+const participant = id => data.teams.find(t=>t.id===id);
+const participantName = id => participant(id)?.name || 'A definir';
+const activeCup = () => data.competitions.find(c=>c.kind==='CUP'&&c.active) || data.competitions.find(c=>c.kind==='CUP') || null;
+const cupMatches = () => { const cup=activeCup(); return cup ? data.matches.filter(m=>m.competition_id===cup.id) : []; };
+const cupEntries = () => { const cup=activeCup(); return cup ? data.entries.filter(e=>e.competition_id===cup.id) : []; };
+
+function groupStandings(groupLabel, format){
+  return calculateGroupStandings({entries:cupEntries(),matches:cupMatches(),groupLabel,format,nameFor:participantName});
+}
+
+function renderGroups(){
+  const cup=activeCup(), grid=$('#groupsGrid');
+  if(!cup){grid.innerHTML=`<div class="empty groups-empty">${emptyState(appearance.empty_groups)}</div>`;$('#groupRule').textContent='';return;}
+  const format=normalizeCupFormat(cup.format_config);
+  const extraGroups=cupEntries().map(e=>e.group_label).filter(Boolean);
+  const groups=[...new Set([...format.groups,...extraGroups])];
+  $('#groupRule').textContent=`${format.qualifiers_per_group} passam · vitória +${format.points_win} · empate ${format.points_draw} · 0×3 ${format.points_loss_three_crowns}`;
+  if(!groups.length){grid.innerHTML=`<div class="empty groups-empty">${emptyState(appearance.empty_groups)}</div>`;return;}
+  grid.innerHTML=groups.map(label=>{
+    const rows=groupStandings(label,format);
+    const hasResult=rows.some(r=>r.j>0);
+    const body=rows.length?rows.map((r,i)=>`<tr class="${hasResult&&i<format.qualifiers_per_group?'qualifying':''}"><td><span class="group-rank">${i+1}</span></td><td><b>${escapeHtml(r.name)}</b></td><td>${r.j}</td><td>${r.sg>0?'+':''}${r.sg}</td><td>${r.time_complete?formatVictoryTime(r.win_time_seconds):'—'}</td><td><b class="pts">${r.pts}</b></td></tr>`).join(''):`<tr><td colspan="6" class="empty group-table-empty">Nenhum participante neste grupo.</td></tr>`;
+    return `<article class="group-card"><div class="group-card-head"><div><span>GRUPO</span><h3>${escapeHtml(label)}</h3></div><small>${format.qualifiers_per_group} vagas</small></div><div class="group-table-wrap"><table aria-label="Grupo ${escapeHtml(label)}"><thead><tr><th>#</th><th>Participante</th><th>J</th><th>SG</th><th>Tempo</th><th>PTS</th></tr></thead><tbody>${body}</tbody></table></div><div class="group-tiebreak">Desempate: pontos → SG → menor tempo das vitórias</div></article>`;
+  }).join('');
+}
+
+function renderBracket(){
+  const phases=groupKnockoutMatches(cupMatches());
+  const el=$('#bracket'),tools=$('#cupTools'),select=$('#cupPhase');
+  tools.hidden=!phases.length;
+  if(!phases.length){el.innerHTML=`<div class="empty">${emptyState(appearance.empty_cup)}</div>`;return;}
+  const previous=select.value;
+  select.innerHTML='<option value="all">Todas as fases</option>'+phases.map((phase,i)=>`<option value="${i}">${escapeHtml(phase.label)}</option>`).join('');
+  select.value=[...select.options].some(option=>option.value===previous)?previous:'all';
+  function draw(){
+    const visible=select.value==='all'?phases:[phases[Number(select.value)]];
+    el.classList.toggle('single-phase',select.value!=='all');
+    el.innerHTML=visible.map(phase=>`<section class="bracket-round" aria-label="${escapeHtml(phase.label)}"><h3>${escapeHtml(phase.label)}<span>${phase.matches.length}</span></h3><div class="bracket-matches">${phase.matches.map(m=>{
+      const finished=m.status==='FINISHED',aWin=finished&&m.crowns_a>m.crowns_b,bWin=finished&&m.crowns_b>m.crowns_a;
+      return `<article class="bracket-card"><div class="bracket-team ${aWin?'winner':''}"><span>${escapeHtml(participantName(m.participant_a))}</span><b>${finished?m.crowns_a??'–':'–'}</b></div><div class="bracket-team ${bWin?'winner':''}"><span>${escapeHtml(participantName(m.participant_b))}</span><b>${finished?m.crowns_b??'–':'–'}</b></div><small>${finished?`Finalizada${m.victory_time_seconds?` · ${formatVictoryTime(m.victory_time_seconds)}`:''}`:'Agendada'}</small></article>`;
+    }).join('')}</div></section>`).join('');
+    el.scrollLeft=0;
+    $('#cupSummary').textContent=`${visible.length} ${visible.length===1?'fase':'fases'} · ${visible.reduce((sum,phase)=>sum+phase.matches.length,0)} partidas`;
+  }
+  select.onchange=draw;draw();
+}
+
+function fmtDate(value){if(!value)return 'Data a definir';try{return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value));}catch{return 'Data inválida'}}
+
+function videoInfo(value){
+  if(!value) return null;
+  try{
+    const url=new URL(value); if(url.protocol!=='https:') return null;
+    const host=url.hostname.replace(/^www\./,'').toLowerCase();
+    if(host==='youtu.be'){
+      const id=url.pathname.split('/').filter(Boolean)[0]; if(id) return {type:'embed',src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}`,label:'YouTube'};
+    }
+    if(host==='youtube.com' || host==='m.youtube.com'){
+      let id=url.searchParams.get('v');
+      const parts=url.pathname.split('/').filter(Boolean);
+      if(!id && ['shorts','embed','live'].includes(parts[0])) id=parts[1];
+      if(id) return {type:'embed',src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}`,label:'YouTube'};
+    }
+    if(host==='vimeo.com' || host.endsWith('.vimeo.com')){
+      const id=url.pathname.split('/').filter(Boolean).find(x=>/^\d+$/.test(x));
+      if(id) return {type:'embed',src:`https://player.vimeo.com/video/${id}`,label:'Vimeo'};
+    }
+    if(/\.(mp4|webm|ogg)(?:$|\?)/i.test(url.href)) return {type:'video',src:url.href,label:'Vídeo'};
+    return {type:'link',src:url.href,label:'Abrir vídeo'};
+  }catch{return null;}
+}
+
+function renderVideo(value){
+  const info=videoInfo(value); if(!info)return '';
+  if(info.type==='embed') return `<details class="match-video"><summary>▶ Assistir partida</summary><div class="video-frame"><iframe loading="lazy" src="${escapeHtml(info.src)}" title="Vídeo da partida" allow="encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe></div></details>`;
+  if(info.type==='video') return `<details class="match-video"><summary>▶ Assistir partida</summary><div class="video-frame"><video controls playsinline preload="metadata" src="${escapeHtml(info.src)}"></video></div></details>`;
+  return `<a class="match-video-link" href="${escapeHtml(info.src)}" target="_blank" rel="noopener noreferrer">▶ ${escapeHtml(info.label)}</a>`;
+}
+
+function renderMatches(){
+  const list=$('#matchesList');
+  let matches=[...cupMatches()].sort((a,b)=>new Date(b.scheduled_at||b.created_at||0)-new Date(a.scheduled_at||a.created_at||0));
+  if(currentFilter==='FINISHED'||currentFilter==='SCHEDULED') matches=matches.filter(m=>m.status===currentFilter);
+  if(currentFilter==='GROUP'||currentFilter==='KNOCKOUT') matches=matches.filter(m=>(m.stage_type||'KNOCKOUT')===currentFilter);
+  $('#matchCount').textContent=`${matches.length} ${matches.length===1?'partida':'partidas'}`;
+  if(!matches.length){list.innerHTML=`<div class="empty">${emptyState(appearance.empty_matches)}</div>`;return;}
+  list.innerHTML=matches.map(m=>{
+    const games=data.games.filter(g=>g.match_id===m.id).sort((a,b)=>a.game_number-b.game_number);
+    const aWin=m.status==='FINISHED'&&m.crowns_a>m.crowns_b,bWin=m.status==='FINISHED'&&m.crowns_b>m.crowns_a;
+    const stage=(m.stage_type||'KNOCKOUT')==='GROUP'?`Grupo ${m.group_label||'—'} · ${m.round_label}`:m.round_label;
+    const gameHtml=games.length?`<details><summary>Detalhes jogo a jogo</summary><div class="game-log">${games.map(g=>`<div>Jogo ${g.game_number}: <b>${g.crowns_a} × ${g.crowns_b}</b>${g.notes?' · '+escapeHtml(g.notes):''}</div>`).join('')}</div></details>`:'';
+    const time=m.status==='FINISHED'&&m.crowns_a!==m.crowns_b&&m.victory_time_seconds?` · ${formatVictoryTime(m.victory_time_seconds)}`:'';
+    return `<article class="match-card"><div class="match-head"><span>${escapeHtml(stage)}</span><span class="status ${m.status==='FINISHED'?'finished':'scheduled'}">${m.status==='FINISHED'?'FINALIZADA':'AGENDADA'}</span></div><div class="match-main"><div class="match-row"><span class="${aWin?'winner-name':''}">${escapeHtml(participantName(m.participant_a))}</span><b>${m.crowns_a??'–'}</b></div><div class="match-row"><span class="${bWin?'winner-name':''}">${escapeHtml(participantName(m.participant_b))}</span><b>${m.crowns_b??'–'}</b></div></div><div class="match-meta">${escapeHtml(fmtDate(m.scheduled_at))}${time}${m.notes?' · '+escapeHtml(m.notes):''}</div>${renderVideo(m.video_url)}${gameHtml}</article>`;
+  }).join('');
+}
+
+async function loadData(){
+  applySettings(defaults);
+  if(!configured || !supabase){
+    $('#setupWarning').classList.remove('hidden');
+    $('#setupWarning').textContent=connectionError?'Não foi possível carregar o cliente do Supabase.':'Conexão com o Supabase não configurada. Abra o Admin para salvar a conexão.';
+    renderAll(); return;
+  }
+  let loaded=false;
+  try{
+    const head=await Promise.all([
+      supabase.from('competitions').select('*').eq('kind','CUP').order('created_at'),
+      supabase.from('site_settings').select('settings').eq('id',1).maybeSingle()
+    ]);
+    if(head[0].error)throw head[0].error;
+    if(head[1].error)console.warn(head[1].error);
+    appearance=normalizeSettings(head[1].data?.settings);applySettings(appearance);
+    data.competitions=head[0].data||[];
+    const cup=activeCup();
+    if(cup){
+      const detail=await Promise.all([
+        supabase.from('teams').select('*').eq('team_type','SOLO').order('name'),
+        supabase.from('competition_entries').select('*').eq('competition_id',cup.id),
+        supabase.from('matches').select('*').eq('competition_id',cup.id).order('scheduled_at',{ascending:false,nullsFirst:false})
+      ]);
+      const detailFailed=detail.find(q=>q.error);if(detailFailed)throw detailFailed.error;
+      data.teams=detail[0].data||[];data.entries=detail[1].data||[];data.matches=detail[2].data||[];
+      const matchIds=data.matches.map(m=>m.id);
+      if(matchIds.length){
+        const games=await supabase.from('match_games').select('*').in('match_id',matchIds).order('game_number');
+        if(games.error)throw games.error;data.games=games.data||[];
+      }
+    }
+    loaded=true;
+  }catch(err){
+    console.error(err);$('#setupWarning').classList.remove('hidden');$('#setupWarning').textContent='O Supabase está conectado, mas o banco precisa da atualização copa-v3-migration.sql. Não apague o projeto.';
+  }
+  if(loaded){$('#setupWarning').classList.add('hidden');$('#setupWarning').textContent='';}
+  renderAll();
+}
+function renderAll(){
+  const cup=activeCup(),format=cup?normalizeCupFormat(cup.format_config):null;
+  const entries=cup?cupEntries():[];
+  const matches=cupMatches();
+  $('#activeCupName').textContent=cup?.name||appearance.cup_title;
+  $('#participantCount').textContent=new Set(entries.map(e=>e.participant_id)).size;
+  $('#groupCount').textContent=format?.groups.length||0;
+  $('#scheduledCount').textContent=matches.filter(m=>m.status==='SCHEDULED').length;
+  $('#finishedCount').textContent=matches.filter(m=>m.status==='FINISHED').length;
+  renderGroups();renderBracket();renderMatches();
+  document.querySelector('main').setAttribute('aria-busy','false');clearTimeout(window.loadingTimeout);window.finishLoading();
+}
+
+document.querySelectorAll('.filter').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.filter').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-pressed','false')});
+  btn.classList.add('active');btn.setAttribute('aria-pressed','true');currentFilter=btn.dataset.filter;renderMatches();
+}));
+const navLinks=[...document.querySelectorAll('.bottom-nav a, .desktop-nav a')];
+function selectNav(id){navLinks.forEach(a=>{const active=a.hash==='#'+id;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')})}
+navLinks.forEach(a=>a.addEventListener('click',()=>selectNav(a.hash.slice(1))));
+const sections=[...document.querySelectorAll('main .section')];let navigationFrame=0;
+function updateNavigation(){navigationFrame=0;let current=sections[0];for(const section of sections)if(section.getBoundingClientRect().top<=innerHeight*.35)current=section;if(current)selectNav(current.id)}
+function scheduleNavigation(){if(!navigationFrame)navigationFrame=requestAnimationFrame(updateNavigation)}
+addEventListener('scroll',scheduleNavigation,{passive:true});addEventListener('resize',scheduleNavigation,{passive:true});scheduleNavigation();
+loadData().catch(err=>{console.error(err);$('#setupWarning').classList.remove('hidden');$('#setupWarning').textContent='Falha ao iniciar o site.';clearTimeout(window.loadingTimeout);window.finishLoading()});
