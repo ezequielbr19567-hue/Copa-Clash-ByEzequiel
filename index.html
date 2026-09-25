@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123b78">
+  <meta name="description" content="">
+  <title>Arena</title>
+  <link rel="icon" href="assets/site-image.png">
+  <link rel="apple-touch-icon" href="assets/site-image.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="arena-body">
+  <a class="skip-link" href="#campeonato">Pular para a classificação</a>
+  <div id="pageLoader" class="page-loader" role="status"><img data-site-image src="assets/site-image.png" alt="" width="88" height="88"><span class="loading-track"></span><span data-setting="loading_text">Carregando</span></div>
+  <script src="js/loading.js"></script>
+  <header class="topbar"><div class="container topbar-inner">
+    <a class="brand" href="#inicio"><img data-site-image src="assets/site-image.png" alt="" width="40" height="40"><strong data-setting="site_name">Arena</strong></a>
+    <nav class="desktop-nav" aria-label="Navegação principal"><a href="#campeonato" class="active" aria-current="location" data-setting="league_title">Classificação</a><a href="#copa" data-setting="cup_title">Copa</a><a href="#partidas" data-setting="matches_title">Partidas</a></nav>
+    <a class="admin-entry" href="admin.html" aria-label="Abrir painel administrativo">Admin <span aria-hidden="true">↗</span></a>
+  </div></header>
+  <div id="setupWarning" class="setup-warning hidden" role="status"></div>
+  <main aria-busy="true">
+    <section id="inicio" class="container welcome"><div class="welcome-copy"><h1 data-setting="hero_title">Temporada</h1><p data-setting="hero_description" hidden></p><a class="hero-cta" href="#partidas"><span data-setting="cta_label">Partidas</span><span aria-hidden="true">→</span></a></div><div class="hero-art"><img class="welcome-image" data-site-image src="assets/site-image.png" alt="" width="280" height="280"></div></section>
+    <div class="container season-summary" aria-label="Resumo da temporada"><div><div><strong id="teamCount">–</strong><span data-setting="participants_label">Participantes</span></div></div><div><div><strong id="scheduledCount">–</strong><span data-setting="scheduled_label">Agendadas</span></div></div><div><div><strong id="finishedCount">–</strong><span data-setting="finished_label">Finalizadas</span></div></div></div>
+    <a class="cup-invite container" href="#copa"><span class="invite-mark" aria-hidden="true">✦</span><span><small>A PRÓXIMA GRANDE DISPUTA</small><strong>O caminho até o título passa por aqui.</strong></span><span class="invite-link">Ver mata-mata <span aria-hidden="true">↗</span></span></a>
+    <section id="campeonato" class="section container">
+      <div class="section-heading"><div><h2 data-setting="league_title">Classificação</h2></div><button id="tableToggle" class="text-button" aria-expanded="false" aria-controls="standingsTable">Detalhes +</button></div>
+      <div id="standingsTable" class="table-wrap" tabindex="0" role="region" aria-label="Classificação"><table><caption class="table-caption" data-setting="rules_text">Vitória +3 · Empate +1 · Derrota 0 · Derrota por 0×3 −1</caption><thead><tr><th scope="col">#</th><th scope="col">Participante</th><th scope="col" title="Jogos">J</th><th scope="col" title="Vitórias">V</th><th scope="col" title="Empates">E</th><th scope="col" title="Derrotas">D</th><th scope="col" title="Coroas a favor">CF</th><th scope="col" title="Coroas sofridas">CS</th><th scope="col" title="Saldo de coroas">SG</th><th scope="col" title="Derrotas por 0 a 3">0×3</th><th scope="col">PTS</th></tr></thead><tbody id="standingsBody"></tbody></table></div>
+    </section>
+    <section id="copa" class="section container">
+      <div class="section-heading"><div><span class="cup-eyebrow">A DISPUTA PELO TÍTULO</span><h2 data-setting="cup_title">Copa</h2></div><span class="cup-tag">MATA-MATA</span></div>
+      <div class="cup-arena">
+        <div class="cup-hero"><div class="cup-hero-copy"><span id="cupStage" class="cup-stage">Rumo ao mata-mata</span><h3>Cada confronto,<br>um passo para a glória.</h3><p id="cupContext">Acompanhe o caminho até a grande final.</p><a class="cup-context-link" href="#campeonato">Ver classificação <span aria-hidden="true">↗</span></a></div>
+          <div class="cup-trophy" aria-hidden="true"><div class="trophy-orbit"></div><svg viewBox="0 0 160 180" fill="none"><path d="M44 34H22v21c0 23 17 35 37 35M116 34h22v21c0 23-17 35-37 35" stroke="currentColor" stroke-width="7"/><path d="M42 22h76v43c0 27-16 44-38 44S42 92 42 65V22Z" fill="currentColor"/><path d="M80 43l6 12 14 2-10 10 2 14-12-7-12 7 2-14-10-10 14-2 6-12Z" fill="#473817"/><path d="M80 109v27m-23 10h46m-54 14h62" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg><span>UM SÓ CAMPEÃO</span></div>
+        </div>
+        <div id="cupProgress" class="cup-progress" hidden></div>
+        <div class="cup-board"><div id="cupTools" class="cup-tools" hidden><label for="cupPhase">Explorar<select id="cupPhase"><option value="all">Todas as fases</option></select></label><span id="cupSummary" role="status"></span></div><div id="cupPhaseNav" class="cup-phase-nav" aria-label="Fases do mata-mata" hidden></div><div id="bracket" class="bracket" tabindex="0" role="region" aria-label="Confrontos da Copa"></div><p id="cupScrollHint" class="cup-scroll-hint" hidden>Deslize para explorar as fases <span aria-hidden="true">→</span></p></div>
+      </div>
+    </section>
+    <section id="partidas" class="section container"><div class="section-heading"><div><h2 data-setting="matches_title">Partidas</h2></div><span id="matchCount" class="result-count" role="status"></span></div><div class="filters" aria-label="Filtrar partidas"><button class="filter active" data-filter="ALL" aria-pressed="true">Todas</button><button class="filter" data-filter="SCHEDULED" aria-pressed="false">Agendadas</button><button class="filter" data-filter="FINISHED" aria-pressed="false">Finalizadas</button><button class="filter" data-filter="LEAGUE" aria-pressed="false">Liga</button><button class="filter" data-filter="CUP" aria-pressed="false">Copa</button></div><div id="matchesList" class="matches-list"></div></section>
+  </main>
+  <footer class="container"><span data-setting="footer_text" hidden></span></footer>
+  <nav class="bottom-nav" aria-label="Navegação principal"><a href="#campeonato" class="active" aria-current="location"><span aria-hidden="true">▤</span><span data-setting="league_title">Classificação</span></a><a href="#copa"><span aria-hidden="true">♛</span><span data-setting="cup_title">Copa</span></a><a href="#partidas"><span aria-hidden="true">▦</span><span data-setting="matches_title">Partidas</span></a></nav>
+  <noscript><p class="empty">Ative o JavaScript para visualizar os resultados.</p><style>.page-loader{display:none}</style></noscript>
+  <script src="js/config.js"></script><script type="module" src="js/app.js"></script>
+</body>
+</html>
